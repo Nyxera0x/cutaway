@@ -1,46 +1,76 @@
-# Cutaway
+# cutaway
 
-A cutaway is a machine drawn with its shell opened, so you see the mechanism inside. This is the method for building one as a live 3D film from a single reference image: Claude Code writes every shell, gear and part as three.js code, checks the result against the picture, and films the object taking itself apart. It works for anything with a dense core: robotic animals, engines, drones, devices.
+A Claude Code skill that turns one picture into a 3D object that takes itself apart.
 
-This repository holds the method, not the output:
+Give Claude an image of a robotic animal, a machine or a device. It rebuilds it in three.js, every shell, gear and fang written as code, checks the build against the picture line by line, and films it: a cursor presses a button, that part comes apart under its own camera, then the whole object explodes and snaps back together.
 
-- the job description Claude reads before every animal;
-- the checklist format and a full example;
-- every prompt, step by step;
-- the corrections that made it work.
+![Theraphos TH-8 robotic tarantula](docs/tarantula.gif)
 
-There is no code here and no renders. Claude writes the code on your machine from these files.
-
-## What you need
-
-- **Claude Code** on Opus.
-- **An image model** (ChatGPT works) for the reference picture.
-- **Node.js 20 or newer**, **ffmpeg** and **Python 3** for the video and the sound. Claude Code installs them if you ask.
-
-## How it runs
-
-1. **Generate the reference.** One picture sets the look and nothing else. See [PROMPTS.md](PROMPTS.md), step 1.
-2. **Add the job description.** Copy [JOB_DESCRIPTION.md](JOB_DESCRIPTION.md) into your project and point Claude at it before every animal.
-3. **Write a checklist for this picture.** 10 to 12 numbered lines on what this one image stands on. See [CHECKLIST.md](CHECKLIST.md).
-4. **Run the still loop.** Claude renders a still, stacks it next to the reference and grades every line. It stops after round 2 and waits for you.
-5. **Measure.** Dark-pixel share against the reference, and the proportions in numbers. Eyeballing lets a tidy diagram through.
-6. **Save every correction** into the job description. [LESSONS.md](LESSONS.md) lists ours.
-7. **Film it.** Port the approved film of the animal with the closest body 1:1 and change the body only. Every beat gets its own camera.
-8. **Write the short version.** A 10-second version is its own script, never a montage of the long one.
-9. **Render frame by frame** and score the sound on the same script.
-
-## Files
-
-| File | What it is |
+| Serrasal PX-7 robotic piranha | Vespion VX-9 robotic wasp |
 |---|---|
-| [JOB_DESCRIPTION.md](JOB_DESCRIPTION.md) | The brief Claude reads before every animal: the look, the order of work, the camera, the film |
-| [CHECKLIST.md](CHECKLIST.md) | How to write a checklist for one picture, a template and a full 12-line example |
-| [PROMPTS.md](PROMPTS.md) | Every prompt, from the reference image to the sound |
-| [LESSONS.md](LESSONS.md) | Each mistake, what it looked like, and the line it added to the job description |
+| ![Serrasal PX-7 robotic piranha](docs/piranha.gif) | ![Vespion VX-9 robotic wasp](docs/wasp.gif) |
 
-## What it costs
+## Install
 
-- A still runs about 400,000 tokens over 3 rounds.
-- A film runs another 150,000 to 400,000.
-- Run 2 animals at a time, not 4, and look at both after round 2. A note there still changes the outcome; after round 6 it only costs tokens.
-- An animal whose body is unlike anything you have filmed costs about twice as much. Pick one close to an approved body, or know the price first.
+```
+npx skills add Nyxera0x/cutaway -g -a claude-code
+```
+
+Then, once, in the installed folder:
+
+```
+npm install && npx playwright install chromium
+```
+
+You need Node.js 20 or newer. For the video you also need `ffmpeg`, and for the sound Python 3.
+
+## Use
+
+Give Claude Code a picture and ask in plain words:
+
+> Here is a robotic mantis. Build it as a 3D object I can take apart, and stop at the still so I can check it.
+
+> Turn this image of a robot crab into a 20-second film where every part comes apart.
+
+> I approved the still. Film it the way the piranha example is filmed.
+
+No picture yet? `docs/PROMPTS.md` has the prompt that generated ours.
+
+Or open one of the 3 examples first:
+
+```
+node sims/build.mjs tarantula-film     # cutaway-out/dist/tarantula-film.html
+node sims/build.mjs piranha-film
+node sims/build.mjs wasp-film
+```
+
+## How it works
+
+1. **One reference picture** sets the look. Claude reads it and rebuilds it; it never imports it.
+2. **A checklist for that picture**: 10 to 12 numbered lines Claude grades yes, partial or no every round.
+3. **Measured, not eyeballed**: the share of dark mechanism and the proportions, both against the picture.
+4. **A still first.** Claude stops after round 2 and waits for your yes. Nothing gets filmed before it.
+5. **The film** reuses the example with the closest body 1:1 and changes the body only. Every part gets its own camera.
+6. **A 10-second version** gets its own script, its own opening and its own exit.
+
+The whole method is in `docs/`, written so you can follow it with or without the code.
+
+## What is inside
+
+| | |
+|---|---|
+| `SKILL.md` | What Claude reads: the order of work, the rules that make it look right, the review loop. |
+| `docs/JOB_DESCRIPTION.md` | The brief Claude reads before every object. Your corrections go into it. |
+| `docs/CHECKLIST.md`, `docs/PROMPTS.md`, `docs/LESSONS.md` | The checklist format with a full example, every prompt, every mistake and the line it added. |
+| `sims/tarantula-*`, `sims/piranha-*`, `sims/wasp-*` | 3 complete objects. `-shared` is the object, `-film` the full film, `-demo` the 10-second version. |
+| `sims/green/` | The page around every object and the green look, plus 3 review tools: leftover-colour probe, camera track, part anchors. |
+| `sims/kit/` | Runtime, stage, shader warm-up. |
+| `sims/build.mjs` | Bundles an object into one HTML file, three.js and fonts inlined. |
+| `sims/capture.mjs` | Renders the film frame by frame to a 60 fps mp4, or to review sheets of stills. |
+| `sfx/`, `run_sfx.py` | Procedural sound on the film's timeline, mastered to −14 LUFS. |
+
+## Credits
+
+Built on [whaleyxbt/claude-motion](https://github.com/whaleyxbt/claude-motion) (MIT): the runtime, frame capture, sound engine and review rules come from there. Recorded samples are CC0 from Freesound, prepared by [Barty-Bart/motion-graphics](https://github.com/Barty-Bart/motion-graphics); sources in `sfx/samples/SOURCES.md`.
+
+MIT licence.
