@@ -16,9 +16,12 @@ export const DEPS = process.env.CUTAWAY_DEPS || path.join(ROOT, 'node_modules');
 // Unset: playwright uses the Chromium that `npx playwright install chromium` downloaded.
 export const CHROMIUM = process.env.CHROMIUM || undefined;
 // Real GPU WebGL instead of a software rasteriser. On Windows d3d11 plus --force_high_performance_gpu keeps ANGLE off
-// an integrated GPU when a discrete one exists. capture.mjs prints the GPU it got on every run.
+// an integrated GPU when a discrete one exists. On macOS, without an explicit backend ANGLE can pick a Vulkan
+// SwiftShader device that fails to create a context at all ("BindToCurrentSequence failed"); metal is the backend
+// that actually reaches the GPU. capture.mjs prints the GPU it got on every run.
 export const CHROMIUM_ARGS = [
   ...(process.platform === 'win32' ? ['--use-angle=d3d11'] : []),
+  ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
   '--force_high_performance_gpu', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--enable-webgl', '--hide-scrollbars',
 ];
 
